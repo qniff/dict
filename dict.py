@@ -12,12 +12,16 @@ def main():
   counter = len(doc_off)
   sync = ''
   goal = ''
+  new = ''
 
   try:
     if sys.argv[1] == '-l':
       goal = sys.argv[1]
     if sys.argv[1] == '-s':
       goal = sys.argv[2]
+    if sys.argv[1][0] != '-':
+      new = sys.argv[1]
+      
   except:
     None
 
@@ -52,13 +56,23 @@ def main():
     # functionalities
     if goal == '':
 
-      # add new phrase
-      new_data = getData()
-      updateOn(doc_ref, new_data, counter)
-      updateOff(new_data, counter)
+      if new == '':
+        # Usual case, add new phrase
+        new_data = getData()
+        updateOn(doc_ref, new_data, counter)
+        updateOff(new_data, counter)
+      else:
+        # Phrase is parameter, add new phrase
+        if wordExists(new):
+          print('This word already exists')
+        else:
+          new_data = getMeaning(new, 'Meaning for ' + new)
+          updateOn(doc_ref, new_data, counter)
+          updateOff(new_data, counter)
+      
     else:
 
-      # print smth out
+      # Other funcionalities, print smth
       print(getDict(goal))
 
     storeDb(doc_on)
@@ -72,7 +86,13 @@ def main():
 
 def getData():
   phrase = input('Phrase: ')
-  meaning = input('Meaning: ')
+  if(wordExists(phrase)):
+    print('This word already exists')
+  else:
+    return getMeaning(phrase, 'Meaning')
+  
+def getMeaning(phrase, text):
+  meaning = input(text + ': ')
   now = datetime.datetime.now()
   date_entry = '{}/{}/{} {}:{}'.format(now.day, now.month, now.year, now.hour, now.minute)
   new_data = {
@@ -81,13 +101,12 @@ def getData():
     'phrase': phrase,
   }
   return new_data
-  
+
 
 def updateOn(doc_ref, new_data, counter):
   doc_ref.update({
     str(counter):new_data
   })
-
 
 def updateOff(new_data, counter):
   with open(path_off, 'r') as f:
@@ -97,14 +116,25 @@ def updateOff(new_data, counter):
   with open(path_off, 'w') as f:
     json.dump(obj, f)
 
-
 def syncOff(new_version):
   with open(path_off, 'w') as f:
     json.dump(new_version, f)
 
+def wordExists(newWord):
+  doc = retrieveDict()
+  i = 0
+  while len(doc) > i:
+    current = doc[str(i)]
+    if(current['phrase'] == newWord):
+      return True
+    i += 1
+  return False
+
+def retrieveDict():
+  return json.load(open(path_off, 'r')) 
 
 def getDict(goal):
-  doc_off = json.load(open(path_off, 'r'))
+  doc_off = retrieveDict()
   i = 0
   toPrint = ''
   while len(doc_off) > i:
