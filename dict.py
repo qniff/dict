@@ -15,7 +15,7 @@ def main():
   new = ''
 
   try:
-    if sys.argv[1] == '-l':
+    if sys.argv[1] == '-l' or sys.argv[1] == '-ll':
       goal = sys.argv[1]
     if sys.argv[1] == '-s':
       goal = sys.argv[2]
@@ -54,34 +54,14 @@ def main():
     if sync != '': print('^ Synchronized ' + sync)
     
     # functionalities
-    if goal == '':
+    work(goal, new, doc_off, counter)
 
-      if new == '':
-        # Usual case, add new phrase
-        new_data = getData()
-        updateOn(doc_ref, new_data, counter)
-        updateOff(new_data, counter)
-      else:
-        # Phrase is parameter, add new phrase
-        if wordExists(new):
-          print('This word already exists')
-        else:
-          new_data = getMeaning(new, 'Meaning for ' + new)
-          updateOn(doc_ref, new_data, counter)
-          updateOff(new_data, counter)
-      
-    else:
-
-      # Other funcionalities, print smth
-      print(getDict(goal))
-
-    storeDb(doc_on)
+    storeSize(doc_on)
       
   except:
     print('^ Warning: no internet\n')
     # proceed
-
-    updateOff(getData(), counter)
+    work(goal, new, doc_off, counter)
   
 
 def getData():
@@ -101,6 +81,27 @@ def getMeaning(phrase, text):
     'phrase': phrase,
   }
   return new_data
+
+def work(goal, new, doc_ref, counter):
+  if goal == '':
+
+    if new == '':
+      # Usual case, add new phrase
+      new_data = getData()
+      updateOn(doc_ref, new_data, counter)
+      updateOff(new_data, counter)
+    else:
+      # Phrase is parameter, add new phrase
+      if wordExists(new):
+        print('This word already exists')
+      else:
+        new_data = getMeaning(new, 'Meaning for ' + new)
+        updateOn(doc_ref, new_data, counter)
+        updateOff(new_data, counter)
+      
+  else:
+    # Other funcionalities, print smth
+    print(getDict(goal))
 
 
 def updateOn(doc_ref, new_data, counter):
@@ -136,27 +137,31 @@ def retrieveDict():
 def getDict(goal):
   doc_off = retrieveDict()
   i = 0
+  limit = 0
   toPrint = ''
   while len(doc_off) > i:
     obj = doc_off[str(i)]
     if goal == '-l':
       toPrint += str("\n"+ obj['phrase']) + " <- means -> " + str(obj['meaning'])
+    elif goal == '-ll':
+      if limit == 0:
+        limit += 1
+        toPrint += str(len(doc_off) - 1)
     else:
       if goal in str(obj['phrase']) or goal in str(obj['meaning']):
         toPrint += str("\n"+ obj['phrase']) + " <- means -> " + str(obj['meaning'])
-
     i += 1
   return toPrint
 
 
-def storeDb(doc_on):
+def storeSize(doc_on):
   with open(path_db, 'w') as f:
     f.write(str(len(doc_on)))
 
 
-def lastCounter():
-  with open(path_db, 'r') as f:
-    return int(f.readline())
+# def lastCounter():
+#   with open(path_db, 'r') as f:
+#     return int(f.readline())
 
 
 
@@ -178,6 +183,6 @@ main()
 #     sync local version
 #
 # 2. If db is ahead check for last version of db
-#    If last version differences from local -> generate counter from relevant
-#    and append difference between local and last into relevant
-#    sync local version
+#     If last version differences from local -> generate counter from relevant
+#     and append difference between local and last into relevant
+#     sync local version
