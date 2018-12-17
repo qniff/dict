@@ -54,14 +54,14 @@ def main():
     if sync != '': print('^ Synchronized ' + sync)
     
     # functionalities
-    work(goal, new, doc_off, counter)
+    work(goal, new, doc_ref, counter)
 
     storeSize(doc_on)
       
   except:
     print('^ Warning: no internet\n')
     # proceed
-    work(goal, new, doc_off, counter)
+    work(goal, new, doc_ref, counter)
   
 
 def getData():
@@ -146,7 +146,7 @@ def getDict(goal):
     elif goal == '-ll':
       if limit == 0:
         limit += 1
-        toPrint += str(len(doc_off) - 1)
+        toPrint += str(len(doc_off))
     else:
       if goal in str(obj['phrase']) or goal in str(obj['meaning']):
         toPrint += str("\n"+ obj['phrase']) + " <- means -> " + str(obj['meaning'])
